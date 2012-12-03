@@ -190,6 +190,9 @@ namespace Osmium {
             /// Do we want to attempt repair of a broken geometry?
             const bool m_attempt_repair;
 
+            /// Validate polygons?
+            const bool m_validate;
+
             /// This is the new area we are building.
             shared_ptr<Osmium::OSM::Area> m_new_area;
 
@@ -290,10 +293,11 @@ namespace Osmium {
 
         public:
 
-            Builder(const Osmium::Relations::RelationInfo& relation_info, bool attempt_repair) :
+            Builder(const Osmium::Relations::RelationInfo& relation_info, bool attempt_repair, bool validate=true) :
                 m_relation_info(relation_info),
                 m_areas(),
                 m_attempt_repair(attempt_repair),
+                m_validate(validate),
                 m_new_area(make_shared<Osmium::OSM::Area>(*relation_info.relation())),
                 m_ringlist() {
             }
@@ -893,7 +897,7 @@ namespace Osmium {
 
                     try {
                         p = Osmium::Geometry::geos_geometry_factory()->createPolygon(ring, holes);
-                        if (p) valid = p->isValid();
+                        if (p) valid = !m_validate || p->isValid();
                     } catch (const geos::util::GEOSException& exc) {
                         // nop
                         std::cerr << "Exception during creation of polygon for relation #" << m_relation_info.relation()->id() << ": " << exc.what() << " (treating as invalid polygon)" << std::endl;
@@ -913,6 +917,10 @@ namespace Osmium {
                             delete p;
                         }
                         delete polygons;
+                        for (unsigned int k=0; k < m_ringlist[i]->ways.size(); ++k) {
+                            osm_object_id_t wayId = m_ringlist[i]->ways[k]->way->id();
+                            std::cerr << "Invalid ring " << i << " for way #" << wayId << " for relation #" << m_relation_info.relation()->id() << std::endl;
+                        }
                         throw InvalidRing("invalid ring");
                     } else {
                         polygons->push_back(p);
@@ -952,6 +960,7 @@ namespace Osmium {
                 try {
                     mp = Osmium::Geometry::geos_geometry_factory()->createMultiPolygon(polygons);
                 } catch (const geos::util::GEOSException& exc) {
+                    std::cerr << exc.what() << std::endl;
                     BOOST_FOREACH(geos::geom::Geometry* p, *polygons) {
                         delete p;
                     }
@@ -959,7 +968,7 @@ namespace Osmium {
                     throw InvalidMultiPolygon("multipolygon invalid");
                 };
 
-                if (mp->isValid()) {
+                if (! m_validate || mp->isValid()) {
                     m_new_area->geos_geometry(mp);
                     return;
                 }

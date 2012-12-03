@@ -49,12 +49,14 @@ namespace Osmium {
             typedef typename Osmium::Relations::Assembler<Osmium::MultiPolygon::Assembler<THandler>, Osmium::Relations::RelationInfo, false, true, false, THandler> AssemblerType;
 
             bool m_attempt_repair;
+            bool m_validate;
 
         public:
 
-            Assembler(THandler& handler, bool attempt_repair) :
+            Assembler(THandler& handler, bool attempt_repair, bool validate=true) :
                 AssemblerType(handler),
-                m_attempt_repair(attempt_repair) {
+                m_attempt_repair(attempt_repair),
+                m_validate(validate) {
             }
 
             void relation(const shared_ptr<Osmium::OSM::Relation const>& relation) {
@@ -99,7 +101,7 @@ namespace Osmium {
                     std::cout << "MultiPolygon from relation " << relation_info.relation()->id() << "\n";
                 }
 
-                TBuilder builder(relation_info, m_attempt_repair);
+                TBuilder builder(relation_info, m_attempt_repair, m_validate);
 
                 BOOST_FOREACH(shared_ptr<Osmium::OSM::Area>& area, builder.build()) {
                     AssemblerType::nested_handler().area(area);
