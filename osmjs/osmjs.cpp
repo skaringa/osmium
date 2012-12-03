@@ -54,6 +54,7 @@ void print_help() {
               << "  --no-repair, -r                  - Do not attempt to repair broken multipolygons\n"
               << "  --2pass, -2                      - Read OSMFILE twice\n"
               << "  --multipolygon, -m               - Build multipolygons (implies -2)\n"
+              << "  --validate, -v                   - Validate multipolygons (default: no validation)\n"
               << "Location stores:\n"
               << "  none        - Do not store node locations (you will have no way or polygon geometries)\n"
               << "  array       - Store node locations in large array (use for large OSM files)\n"
@@ -116,14 +117,16 @@ int main(int argc, char* argv[]) {
         {"no-repair",            no_argument, 0, 'r'},
         {"2pass",                no_argument, 0, '2'},
         {"multipolygon",         no_argument, 0, 'm'},
+        {"validate",             no_argument, 0, 'v'},
         {0, 0, 0, 0}
     };
 
     bool debug = false;
     bool multipolygon = false;
+    bool validate = false;
 
     while (1) {
-        int c = getopt_long(argc, argv, "dhi:j:l:r2m", long_options, 0);
+        int c = getopt_long(argc, argv, "dhi:j:l:r2mv", long_options, 0);
         if (c == -1)
             break;
 
@@ -165,6 +168,9 @@ int main(int argc, char* argv[]) {
             case 'm':
                 multipolygon = true;
                 two_passes = true;
+                break;
+            case 'v':
+                validate = true;
                 break;
             default:
                 exit(1);
@@ -236,7 +242,7 @@ int main(int argc, char* argv[]) {
 
     if (two_passes) {
         typedef Osmium::MultiPolygon::Assembler<Osmium::Javascript::Handler> assembler_t;
-        assembler_t assembler(handler_javascript, attempt_repair);
+        assembler_t assembler(handler_javascript, attempt_repair, validate);
         assembler.set_debug_level(debug ? 2 : 0);
 
         cfw_handler_t handler_cfw(*store_pos, store_neg);
