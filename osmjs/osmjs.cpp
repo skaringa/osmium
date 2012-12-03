@@ -31,6 +31,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <osmium/storage/byid/fixed_array.hpp>
 #include <osmium/storage/byid/sparse_table.hpp>
 #include <osmium/storage/byid/mmap_file.hpp>
+#include <osmium/storage/byid/vector.hpp>
 #ifdef __linux__
 #  include <osmium/storage/byid/mmap_anon.hpp>
 #endif
@@ -60,6 +61,7 @@ void print_help() {
               << "  array       - Store node locations in large array (use for large OSM files)\n"
               << "  disk        - Store node locations on disk (use when low on memory)\n"
               << "  sparsetable - Store node locations in sparse table (use for small OSM files)\n"
+              << "  vector      - Store node locations in vector of ID/Value pairs (very low memory overhead for small OSM datasets)\n"
               ;
 }
 
@@ -105,7 +107,8 @@ int main(int argc, char* argv[]) {
         NONE,
         ARRAY,
         DISK,
-        SPARSETABLE
+        SPARSETABLE,
+        VECTOR
     } location_store = NONE;
 
     static struct option long_options[] = {
@@ -152,6 +155,8 @@ int main(int argc, char* argv[]) {
                     location_store = ARRAY;
                 } else if (!strcmp(optarg, "disk")) {
                     location_store = DISK;
+                } else if (!strcmp(optarg, "vector")) {
+                    location_store = VECTOR;
                 } else if (!strcmp(optarg, "sparsetable")) {
                     location_store = SPARSETABLE;
                 } else {
@@ -235,6 +240,8 @@ int main(int argc, char* argv[]) {
 #endif
     } else if (location_store == SPARSETABLE) {
         store_pos = new Osmium::Storage::ById::SparseTable<Osmium::OSM::Position>();
+    } else if (location_store == VECTOR) {
+    	store_pos = new Osmium::Storage::ById::Vector<Osmium::OSM::Position>();
     }
     Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> store_neg;
     Osmium::Javascript::Handler handler_javascript(include_files, javascript_filename.c_str());
