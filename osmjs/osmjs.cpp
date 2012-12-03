@@ -232,11 +232,12 @@ int main(int argc, char* argv[]) {
     }
     Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> store_neg;
     Osmium::Javascript::Handler handler_javascript(include_files, javascript_filename.c_str());
-    handler_javascript.set_debug_level(debug ? 1 : 0);
+    handler_javascript.set_debug_level(debug ? 2 : 0);
 
     if (two_passes) {
         typedef Osmium::MultiPolygon::Assembler<Osmium::Javascript::Handler> assembler_t;
         assembler_t assembler(handler_javascript, attempt_repair);
+        assembler.set_debug_level(debug ? 2 : 0);
 
         cfw_handler_t handler_cfw(*store_pos, store_neg);
 
