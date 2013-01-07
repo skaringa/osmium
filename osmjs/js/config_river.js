@@ -34,13 +34,24 @@ shapefile('waterways').
     type(LINE).
     column('id', INTEGER, 10).
     column('type', STRING, 32).
-    column('name', STRING, 32);
+    column('name', STRING, 32).
+    column('rsystem', STRING, 32);
 
 shapefile('water').
     type(POLYGON).
     column('id', INTEGER, 10).
     column('type', STRING, 32).
     column('name', STRING, 32);
+
+// ---- functions ----
+
+var rsystem = function(id, tags) {
+    if (tags['name'] == 'Rhein' || tags['name'] == 'Main') {
+        return 'rhein';
+    }
+    return '';
+};
+
 
 // ---- rules ----
 
@@ -52,7 +63,8 @@ node('place', 'town|city').
 way('waterway', 'stream|river|ditch|canal|drain').
     output('waterways').
         attr('type', 'waterway').
-        attr('name');
+        attr('name').
+        attr('rsystem', rsystem);
 
 way('highway', 'motorway|motorway_link').
     output('roads').

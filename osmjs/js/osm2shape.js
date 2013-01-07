@@ -197,7 +197,11 @@ Osmium.Callbacks.init = function() {
 function tags2attributes(id, tags, attrs) {
     var obj = { id: id };
     for (var a in attrs) {
-        obj[a] = tags[attrs[a]];
+        if (typeof attrs[a] === 'function') {
+            obj[a] = attrs[a](id, tags);
+        } else {
+            obj[a] = tags[attrs[a]];
+        }
     }
     return obj;
 }
