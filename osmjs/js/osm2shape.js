@@ -23,6 +23,7 @@ var DOUBLE  = 'double';
 var BOOL    = 'bool';
 
 var files = {};
+var jsonfiles = {};
 
 var rules = {
     node: [],
@@ -71,6 +72,16 @@ function shapefile(name) {
 }
 
 
+function jsonfile(name) {
+    var json = {
+        name: name,
+        fname: name + ".json",
+    };
+    jsonfiles[name] = json;
+    return json;
+}
+
+
 function rule(type, key, value) {
     if (value == '*') {
         value = null;
@@ -80,6 +91,7 @@ function rule(type, key, value) {
         key: key,
         value: value,
         file: null,
+        jsonfile: null,
         attrs: {},
         output: function(name) {
             if (! files[name]) {
@@ -104,6 +116,14 @@ function rule(type, key, value) {
                 key = attr;
             }
             this.attrs[attr] = key;
+            return this;
+        },
+        json: function(name) {
+            if (! jsonfiles[name]) {
+                print("Unknown jsonfile: " + name);
+                throw("config error");
+            }
+            this.jsonfile = name;
             return this;
         }
     };
@@ -180,6 +200,19 @@ Osmium.Callbacks.init = function() {
 
         print('');
     }
+    
+    for (var file in jsonfiles) {
+        var f = jsonfiles[file];
+
+        f.json = Osmium.Output.CSV.open('./' + f.fname);
+        f.comma = false;
+        f.json.print('[');
+        
+        print('JSONfile: ' + file);
+        print('  Filename: ' + f.fname);
+        
+        print('');
+    }
 
     for (var type in rules) {
         for (var i=0; i < rules[type].length; i++) {
@@ -212,6 +245,16 @@ function check(type, osm_object) {
         if (rule.match(osm_object)) {
             var a = tags2attributes(osm_object.id, osm_object.tags, rule.attrs);
             files[rule.file].shp.add(osm_object.geom, a);
+            if (rule.jsonfile != null) {
+                var file = jsonfiles[rule.jsonfile];
+                var str = JSON.stringify(osm_object);
+                if (file.comma) {
+                    file.json.print(',');
+                } else {
+                    file.comma = true;
+                }
+                file.json.print(str);
+            }
         }
     }
 }
@@ -232,6 +275,11 @@ Osmium.Callbacks.end = function() {
     for (var file in files) {
         files[file].shp.close();
     }
+    for (var file in jsonfiles) {
+        jsonfiles[file].json.print(']');
+        jsonfiles[file].json.close();
+    }
+
     print("Done");
 }
 

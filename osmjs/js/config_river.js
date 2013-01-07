@@ -43,6 +43,10 @@ shapefile('water').
     column('type', STRING, 32).
     column('name', STRING, 32);
 
+// ---- json files
+jsonfile('wways');
+
+
 // ---- functions ----
 
 var rsystem = function(id, tags) {
@@ -64,7 +68,8 @@ way('waterway', 'stream|river|ditch|canal|drain').
     output('waterways').
         attr('type', 'waterway').
         attr('name').
-        attr('rsystem', rsystem);
+        attr('rsystem', rsystem).
+    json('wways');
 
 way('highway', 'motorway|motorway_link').
     output('roads').
