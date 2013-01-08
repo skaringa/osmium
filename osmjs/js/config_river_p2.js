@@ -6,6 +6,8 @@
   (see also osm2shape.js)
 
   Create shapefiles for a river map.
+  
+  Run with: osmjs -2 -m -l sparsetable -i osm2shape.js -i _riversystems.js -j config_river_p2.js <input file>
 */
 
 // ---- shapefiles ----
@@ -41,19 +43,14 @@ shapefile('water').
     type(POLYGON).
     column('id', INTEGER, 10).
     column('type', STRING, 32).
-    column('name', STRING, 32);
-
-// ---- json files
-jsonfile('wways');
+    column('name', STRING, 32).
+    column('rsystem', STRING, 32);
 
 
 // ---- functions ----
 
 var rsystem = function(id, tags) {
-    if (tags['name'] == 'Rhein' || tags['name'] == 'Main') {
-        return 'rhein';
-    }
-    return '';
+    return riversystems[id];
 };
 
 
@@ -68,8 +65,7 @@ way('waterway', 'stream|river|ditch|canal|drain').
     output('waterways').
         attr('type', 'waterway').
         attr('name').
-        attr('rsystem', rsystem).
-    json('wways');
+        attr('rsystem', rsystem);
 
 way('highway', 'motorway|motorway_link').
     output('roads').
@@ -96,5 +92,6 @@ area('landuse', 'reservoir').
 area('waterway', 'riverbank').
     output('water').
         attr('type', 'waterway').
-        attr('name');
+        attr('name').
+        attr('rsystem', rsystem);
 
