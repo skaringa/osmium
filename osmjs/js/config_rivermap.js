@@ -6,6 +6,8 @@
   (see also osm2shape.js)
 
   Create shapefiles for a river map.
+  
+  Run with: osmjs -2 -m -l sparsetable -i osm2shape.js -j config_rivermap.js <input file>
 */
 
 // ---- shapefiles ----
@@ -34,8 +36,7 @@ shapefile('waterways').
     type(LINE).
     column('id', INTEGER, 10).
     column('type', STRING, 32).
-    column('name', STRING, 32).
-    column('rsystem', STRING, 32);
+    column('name', STRING, 32);
 
 shapefile('water').
     type(POLYGON).
@@ -43,19 +44,10 @@ shapefile('water').
     column('type', STRING, 32).
     column('name', STRING, 32);
 
-// ---- json files
+
+//---- json files
 jsonfile('wways');
-
-
-// ---- functions ----
-
-var rsystem = function(id, tags) {
-    if (tags['name'] == 'Rhein' || tags['name'] == 'Main') {
-        return 'rhein';
-    }
-    return '';
-};
-
+jsonfile('wtr');
 
 // ---- rules ----
 
@@ -67,9 +59,8 @@ node('place', 'town|city').
 way('waterway', 'stream|river|ditch|canal|drain').
     output('waterways').
         attr('type', 'waterway').
-        attr('name').
-        attr('rsystem', rsystem).
-    json('wways');
+        attr('name')
+    .json('wways');
 
 way('highway', 'motorway|motorway_link').
     output('roads').
@@ -96,5 +87,6 @@ area('landuse', 'reservoir').
 area('waterway', 'riverbank').
     output('water').
         attr('type', 'waterway').
-        attr('name');
+        attr('name').
+    json('wtr');
 
