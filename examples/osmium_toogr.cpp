@@ -3,26 +3,7 @@
   This is an example tool that converts OSM data to some output format
   like Spatialite or Shapefiles using the OGR library.
 
-*/
-
-/*
-
-Copyright 2012 Jochen Topf <jochen@topf.org> and others (see README).
-
-This file is part of Osmium (https://github.com/joto/osmium).
-
-Osmium is free software: you can redistribute it and/or modify it under the
-terms of the GNU Lesser General Public License or (at your option) the GNU
-General Public License as published by the Free Software Foundation, either
-version 3 of the Licenses, or (at your option) any later version.
-
-Osmium is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU Lesser General Public License and the GNU
-General Public License for more details.
-
-You should have received a copy of the Licenses along with Osmium. If not, see
-<http://www.gnu.org/licenses/>.
+  The code in this example file is released into the Public Domain.
 
 */
 
@@ -85,7 +66,7 @@ public:
             exit(1);
         }
 
-        OGRFieldDefn layer_point_field_id("id", OFTInteger);
+        OGRFieldDefn layer_point_field_id("id", OFTReal);
         layer_point_field_id.SetWidth(10);
 
         if (m_layer_point->CreateField(&layer_point_field_id) != OGRERR_NONE) {
@@ -111,7 +92,7 @@ public:
             exit(1);
         }
 
-        OGRFieldDefn layer_linestring_field_id("id", OFTInteger);
+        OGRFieldDefn layer_linestring_field_id("id", OFTReal);
         layer_linestring_field_id.SetWidth(10);
 
         if (m_layer_linestring->CreateField(&layer_linestring_field_id) != OGRERR_NONE) {
@@ -150,7 +131,7 @@ public:
                 OGRFeature* feature = OGRFeature::CreateFeature(m_layer_point->GetLayerDefn());
                 OGRPoint* ogrpoint = Osmium::Geometry::create_ogr_geometry(point);
                 feature->SetGeometry(ogrpoint);
-                feature->SetField("id", node->id());
+                feature->SetField("id", static_cast<double>(node->id()));
                 feature->SetField("operator", node->tags().get_value_by_key("operator"));
 
                 if (m_layer_point->CreateFeature(feature) != OGRERR_NONE) {
@@ -186,7 +167,7 @@ public:
                 OGRFeature* feature = OGRFeature::CreateFeature(m_layer_linestring->GetLayerDefn());
                 OGRLineString* ogrlinestring = Osmium::Geometry::create_ogr_geometry(linestring);
                 feature->SetGeometry(ogrlinestring);
-                feature->SetField("id", way->id());
+                feature->SetField("id", static_cast<double>(way->id()));
                 feature->SetField("type", highway);
 
                 if (m_layer_linestring->CreateFeature(feature) != OGRERR_NONE) {

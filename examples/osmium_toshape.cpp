@@ -2,26 +2,7 @@
 
   This is an example tool that converts OSM data to a shapefile.
 
-*/
-
-/*
-
-Copyright 2012 Jochen Topf <jochen@topf.org> and others (see README).
-
-This file is part of Osmium (https://github.com/joto/osmium).
-
-Osmium is free software: you can redistribute it and/or modify it under the
-terms of the GNU Lesser General Public License or (at your option) the GNU
-General Public License as published by the Free Software Foundation, either
-version 3 of the Licenses, or (at your option) any later version.
-
-Osmium is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU Lesser General Public License and the GNU
-General Public License for more details.
-
-You should have received a copy of the Licenses along with Osmium. If not, see
-<http://www.gnu.org/licenses/>.
+  The code in this example file is released into the Public Domain.
 
 */
 
@@ -55,10 +36,10 @@ public:
     MyShapeHandler() {
         handler_cfw = new cfw_handler_t(store_pos, store_neg);
         shapefile_point = new Osmium::Export::PointShapefile("postboxes");
-        shapefile_point->add_field("id", FTInteger, 10);
+        shapefile_point->add_field("id", FTDouble, 12);
         shapefile_point->add_field("operator", FTString, 30);
         shapefile_linestring = new Osmium::Export::LineStringShapefile("roads");
-        shapefile_linestring->add_field("id", FTInteger, 10);
+        shapefile_linestring->add_field("id", FTDouble, 12);
         shapefile_linestring->add_field("type", FTString, 30);
     }
 
@@ -78,7 +59,7 @@ public:
             try {
                 Osmium::Geometry::Point point(*node);
                 shapefile_point->add_geometry(Osmium::Geometry::create_shp_object(point));
-                shapefile_point->add_attribute(0, node->id());
+                shapefile_point->add_attribute(0, static_cast<double>(node->id()));
                 const char* op = node->tags().get_value_by_key("operator");
                 if (op) {
                     shapefile_point->add_attribute_with_truncate(1, std::string(op));
@@ -100,7 +81,7 @@ public:
             try {
                 Osmium::Geometry::LineString linestring(*way);
                 shapefile_linestring->add_geometry(Osmium::Geometry::create_shp_object(linestring));
-                shapefile_linestring->add_attribute(0, way->id());
+                shapefile_linestring->add_attribute(0, static_cast<double>(way->id()));
                 shapefile_linestring->add_attribute_with_truncate(1, std::string(highway));
             } catch (Osmium::Geometry::IllegalGeometry) {
                 std::cerr << "Ignoring illegal geometry for way " << way->id() << ".\n";

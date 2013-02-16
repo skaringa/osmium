@@ -6,26 +6,7 @@
   The database must have the HSTORE and POSTGIS extentions
   loaded.
 
-*/
-
-/*
-
-Copyright 2012 Jochen Topf <jochen@topf.org> and others (see README).
-
-This file is part of Osmium (https://github.com/joto/osmium).
-
-Osmium is free software: you can redistribute it and/or modify it under the
-terms of the GNU Lesser General Public License or (at your option) the GNU
-General Public License as published by the Free Software Foundation, either
-version 3 of the Licenses, or (at your option) any later version.
-
-Osmium is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU Lesser General Public License and the GNU
-General Public License for more details.
-
-You should have received a copy of the Licenses along with Osmium. If not, see
-<http://www.gnu.org/licenses/>.
+  The code in this example file is released into the Public Domain.
 
 */
 
@@ -33,6 +14,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <iostream>
 #include <numeric>
 #include <string>
+
+#include <boost/lexical_cast.hpp>
 
 #include <ogr_api.h>
 #include <ogrsf_frmts.h>
@@ -79,12 +62,22 @@ public:
         }
 
         // OGR can't create a table with hstore column, so we do it ourselves here
-        m_data_source->ExecuteSQL("CREATE TABLE nodes (id BIGINT, tags hstore);", NULL, NULL);
-        m_data_source->ExecuteSQL("SELECT AddGeometryColumn('nodes', 'geom', 4326, 'POINT', 2);", NULL, NULL);
+        OGRLayer* dummy = m_data_source->ExecuteSQL("CREATE TABLE nodes (id VARCHAR, tags hstore);", NULL, NULL);
+        if (dummy) {
+            m_data_source->ReleaseResultSet(dummy);
+        }
+        dummy = m_data_source->ExecuteSQL("SELECT AddGeometryColumn('nodes', 'geom', 4326, 'POINT', 2);", NULL, NULL);
+        if (dummy) {
+            m_data_source->ReleaseResultSet(dummy);
+        }
 
         m_layer_point = m_data_source->GetLayerByName("nodes");
+        if (!m_layer_point) {
+            std::cerr << "Something went wrong setting up the 'nodes' layer.\n";
+            exit(1);
+        }
 
-        // using transactions make this much faster than without
+        // using transactions makes this much faster than without
         m_layer_point->StartTransaction();
 
         m_filter.add(false, "created_by");
@@ -98,9 +91,7 @@ public:
 
     void node(const shared_ptr<Osmium::OSM::Node const>& node) {
         if (!node->tags().empty()) {
-            std::string tags;
-
-            Osmium::filter_and_accumulate(node->tags(), m_filter, tags, m_tohstore);
+            std::string tags = Osmium::filter_and_accumulate(node->tags(), m_filter, std::string(), m_tohstore);
 
             if (!tags.empty()) {
                 try {
@@ -109,7 +100,7 @@ public:
                     OGRFeature* feature = OGRFeature::CreateFeature(m_layer_point->GetLayerDefn());
                     OGRPoint* ogrpoint = Osmium::Geometry::create_ogr_geometry(point);
                     feature->SetGeometry(ogrpoint);
-                    feature->SetField("id", node->id());
+                    feature->SetField("id", boost::lexical_cast<std::string>(node->id()).c_str());
                     feature->SetField("tags", tags.c_str());
 
                     if (m_layer_point->CreateFeature(feature) != OGRERR_NONE) {
@@ -124,6 +115,10 @@ public:
                 }
             }
         }
+    }
+
+    void after_nodes() {
+        m_layer_point->CommitTransaction();
     }
 
 };
