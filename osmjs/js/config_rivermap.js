@@ -20,7 +20,7 @@ shapefile('places').
 
 shapefile('roads').
     type(LINE).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('type', STRING, 32).
     column('name', STRING, 32).
     column('ref', STRING, 16).
@@ -29,18 +29,18 @@ shapefile('roads').
 
 shapefile('railways').
     type(LINE).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('name', STRING, 32);
 
 shapefile('waterways').
     type(LINE).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('type', STRING, 32).
     column('name', STRING, 32);
 
 shapefile('water').
     type(POLYGON).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('type', STRING, 32).
     column('name', STRING, 32);
 
