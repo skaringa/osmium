@@ -296,6 +296,10 @@ namespace Osmium {
 
             struct OSMArea : public OSMObject {
 
+                static v8::Handle<v8::Value> nodes(Osmium::OSM::Area* area) {
+                    return OSMWayNodeList::get<OSMWayNodeList>().create_instance((void*)&(area->nodes()));
+                }
+
                 static v8::Handle<v8::Value> from(Osmium::OSM::Area* area) {
                     const char* value = area->from_way() ? "way" : "relation";
                     return v8::String::NewSymbol(value);
@@ -308,6 +312,7 @@ namespace Osmium {
 
                 OSMArea() :
                     OSMObject() {
+                    js_template->SetAccessor(v8::String::NewSymbol("nodes"), accessor_getter<Osmium::OSM::Area, nodes>);
                     js_template->SetAccessor(v8::String::NewSymbol("from"), accessor_getter<Osmium::OSM::Area, from>);
                     js_template->SetAccessor(v8::String::NewSymbol("geom"), accessor_getter<Osmium::OSM::Area, geom>);
                 }

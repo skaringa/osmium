@@ -77,7 +77,8 @@ way('railway', 'rail').
 area('natural', 'water').
     output('water').
         attr('type', 'natural').
-        attr('name');
+        attr('name').
+    json('wtr');
 
 area('landuse', 'reservoir').
     output('water').

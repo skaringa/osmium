@@ -127,6 +127,14 @@ namespace Osmium {
                 return *this;
             }
 
+            const WayNodeList& nodes() const {
+                return m_node_list;
+            }
+
+            WayNodeList& nodes() {
+                return m_node_list;
+            }
+
         }; // class Area
 
         /**
