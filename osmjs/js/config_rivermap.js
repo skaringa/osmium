@@ -56,7 +56,7 @@ node('place', 'town|city').
         attr('type', 'place').
         attr('name');
 
-way('waterway', 'stream|river|ditch|canal|drain').
+way('waterway', 'stream|river|ditch|canal|drain|weir|dam').
     output('waterways').
         attr('type', 'waterway').
         attr('name')
@@ -88,6 +88,5 @@ area('landuse', 'reservoir').
 area('waterway', 'riverbank').
     output('water').
         attr('type', 'waterway').
-        attr('name').
-    json('wtr');
+        attr('name');
 
