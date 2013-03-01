@@ -146,6 +146,11 @@ namespace Osmium {
                 return *this;
             }
 
+            WayNodeList& add_all(const WayNodeList& way_node_list) {
+                m_list.insert(m_list.end(), way_node_list.begin(), way_node_list.end());
+                return *this;
+            }
+
             WayNodeList& push_back(osm_object_id_t ref) {
                 m_list.push_back(WayNode(ref));
                 return *this;

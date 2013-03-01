@@ -59,6 +59,7 @@ namespace Osmium {
             friend class Osmium::Geometry::MultiPolygon;
 
             WayNodeList m_node_list;
+            RelationMemberList m_relation_member_list;
             mutable geos::geom::MultiPolygon* m_geos_geometry;
 
             const geos::geom::MultiPolygon* geos_geometry() const {
@@ -71,6 +72,7 @@ namespace Osmium {
             Area(const Relation& relation) :
                 Object(relation),
                 m_node_list(),
+                m_relation_member_list(relation.members()),
                 m_geos_geometry() {
                 id((id() * 2) + sgn(id()));
             }
@@ -79,6 +81,7 @@ namespace Osmium {
             Area(const Way& way) :
                 Object(way),
                 m_node_list(way.nodes()),
+                m_relation_member_list(),
                 m_geos_geometry() {
                 id(id() * 2);
             }
@@ -86,6 +89,7 @@ namespace Osmium {
             Area(const Area& area) :
                 Object(area),
                 m_node_list(area.m_node_list),
+                m_relation_member_list(area.m_relation_member_list),
                 m_geos_geometry(dynamic_cast<geos::geom::MultiPolygon*>(area.m_geos_geometry->clone())) {
             }
 
@@ -100,6 +104,7 @@ namespace Osmium {
                 visible(area.visible());
                 tags(area.tags());
                 m_node_list = area.m_node_list;
+                m_relation_member_list = area.m_relation_member_list;
                 m_geos_geometry = dynamic_cast<geos::geom::MultiPolygon*>(area.m_geos_geometry->clone());
                 return *this;
             }
@@ -133,6 +138,10 @@ namespace Osmium {
 
             WayNodeList& nodes() {
                 return m_node_list;
+            }
+
+            const RelationMemberList& members() const {
+                return m_relation_member_list;
             }
 
         }; // class Area

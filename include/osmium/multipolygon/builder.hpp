@@ -653,6 +653,7 @@ namespace Osmium {
                     if (way && !way->nodes().empty()) {
                         if (way->timestamp() > m_new_area->timestamp()) {
                             m_new_area->timestamp(way->timestamp());
+                            m_new_area->nodes().add_all(way->nodes());
                         }
 
                         way_infos.push_back(make_shared<WayInfo>(way));
