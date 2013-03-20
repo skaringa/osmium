@@ -1,3 +1,12 @@
+skaringa/osmium
+===============
+
+This is a special fork of the Osmium framework from  https://github.com/joto/osmium
+It adds the feature to write JSON files containing the node IDs of ways and relations.
+This is useful in conjunction with https://github.com/skaringa/rivers to create maps of river basins like this: 
+http://www.kompf.de/gps/rivermap.html
+
+Original README of Osmium follows:
 
 Osmium
 ======
