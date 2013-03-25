@@ -32,6 +32,12 @@ shapefile('railways').
     column('id', STRING, 12).
     column('name', STRING, 32);
 
+shapefile('boundaries').
+    type(LINE).
+    column('id', STRING, 12).
+    column('level', INTEGER, 2).
+    column('name', STRING, 32);
+
 shapefile('waterways').
     type(LINE).
     column('id', STRING, 12).
@@ -72,6 +78,11 @@ way('highway', 'motorway|motorway_link').
 
 way('railway', 'rail').
     output('railways').
+        attr('name');
+
+way('boundary', 'administrative').
+    output('boundaries').
+        attr('level', 'admin_level').
         attr('name');
 
 area('natural', 'water').
