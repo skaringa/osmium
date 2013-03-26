@@ -23,9 +23,7 @@ shapefile('roads').
     column('id', STRING, 12).
     column('type', STRING, 32).
     column('name', STRING, 32).
-    column('ref', STRING, 16).
-    column('oneway', BOOL).
-    column('maxspeed', INTEGER, 3);
+    column('ref', STRING, 16);
 
 shapefile('railways').
     type(LINE).
@@ -72,9 +70,7 @@ way('highway', 'motorway|motorway_link').
     output('roads').
         attr('type', 'highway').
         attr('ref').
-        attr('name').
-        attr('oneway').
-        attr('maxspeed');
+        attr('name');
 
 way('railway', 'rail').
     output('railways').
