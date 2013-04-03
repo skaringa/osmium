@@ -90,7 +90,8 @@ area('natural', 'water').
 area('landuse', 'reservoir').
     output('water').
         attr('type', 'landuse').
-        attr('name');
+        attr('name').
+    json('wtr');
 
 area('waterway', 'riverbank').
     output('water').
