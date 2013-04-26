@@ -33,9 +33,16 @@ namespace Osmium {
         public:
 
             std::ofstream out;
+            char separator;
 
             CSV(const char* filename) :
-                out(filename) {
+                out(filename),
+                separator('\t') {
+            }
+
+            CSV(const char* filename, char separator) :
+                out(filename),
+                separator(separator) {
             }
 
             ~CSV() {

@@ -128,11 +128,11 @@ Example:
 Writing to CSV Files
 --------------------
 
-You can write some output to CSV files. Currently line endings are always LF,
-column separator is always a TAB.
+You can write some output to CSV files. Currently line endings are always LF.
+The column separator may be specified as second argument to 'open', default is a TAB.
 
 Example:
-    var csv_file = Osmium.Output.CSV.open("some-filename.csv");
+    var csv_file = Osmium.Output.CSV.open("some-filename.csv", ",");
     csv_file.print("first column", "second column");
     csv_file.close();
 

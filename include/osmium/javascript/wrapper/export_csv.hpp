@@ -37,19 +37,24 @@ namespace Osmium {
             struct ExportCSV : public Osmium::Javascript::Template {
 
                 static v8::Handle<v8::Value> open(const v8::Arguments& args) {
-                    if (args.Length() != 1) {
-                        return v8::Undefined();
-                    } else {
+                    if (args.Length() == 1) {
                         v8::String::Utf8Value str(args[0]);
                         Osmium::Export::CSV* oc = new Osmium::Export::CSV(*str);
                         return Osmium::Javascript::Wrapper::ExportCSV::get<Osmium::Javascript::Wrapper::ExportCSV>().create_instance((void*)(oc));
+                    } else if (args.Length() == 2) {
+                        v8::String::Utf8Value str(args[0]);
+                        v8::String::Utf8Value sepstr(args[1]);
+                        Osmium::Export::CSV* oc = new Osmium::Export::CSV(*str, **sepstr);
+                        return Osmium::Javascript::Wrapper::ExportCSV::get<Osmium::Javascript::Wrapper::ExportCSV>().create_instance((void*)(oc));
+                    } else {
+                        return v8::Undefined();
                     }
                 }
 
                 static v8::Handle<v8::Value> print(const v8::Arguments& args, Osmium::Export::CSV* csv) {
                     for (int i = 0; i < args.Length(); i++) {
                         if (i != 0) {
-                            csv->out << '\t';
+                            csv->out << csv->separator;
                         }
                         Osmium::v8_String_to_ostream(args[i]->ToString(), csv->out);
                     }
