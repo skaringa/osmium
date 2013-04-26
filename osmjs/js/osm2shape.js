@@ -24,6 +24,7 @@ var BOOL    = 'bool';
 
 var files = {};
 var jsonfiles = {};
+var idfiles = {};
 
 var rules = {
     node: [],
@@ -81,6 +82,15 @@ function jsonfile(name) {
     return json;
 }
 
+function idcsvfile(name) {
+    var idf = {
+        name: name,
+        fname: name + ".csv",
+    };
+    idfiles[name] = idf;
+    return idf;
+}
+
 
 function rule(type, key, value) {
     if (value == '*') {
@@ -92,6 +102,7 @@ function rule(type, key, value) {
         value: value,
         file: null,
         jsonfile: null,
+        idfile: null,
         attrs: {},
         output: function(name) {
             if (! files[name]) {
@@ -124,6 +135,14 @@ function rule(type, key, value) {
                 throw("config error");
             }
             this.jsonfile = name;
+            return this;
+        },
+        idcsv: function(name) {
+            if (! idfiles[name]) {
+                print("Unknown idfile: " + name);
+                throw("config error");
+            }
+            this.idfile = name;
             return this;
         }
     };
@@ -214,6 +233,17 @@ Osmium.Callbacks.init = function() {
         print('');
     }
 
+    for (var file in idfiles) {
+        var f = idfiles[file];
+
+        f.idf = Osmium.Output.CSV.open('./' + f.fname, ',');
+        
+        print('CSV ID file: ' + file);
+        print('  Filename: ' + f.fname);
+        
+        print('');
+    }
+
     for (var type in rules) {
         for (var i=0; i < rules[type].length; i++) {
             var rule = rules[type][i];
@@ -239,6 +269,14 @@ function tags2attributes(id, tags, attrs) {
     return obj;
 }
 
+function toNodeArray(nodes) {
+    var nodeArray = [];
+    for (var i = 0; i < nodes.length; ++i) {
+        nodeArray.push(nodes[i]);
+    }
+    return nodeArray;
+}
+
 function check(type, osm_object) {
     for (var i=0; i < rules[type].length; i++) {
         var rule = rules[type][i];
@@ -254,6 +292,17 @@ function check(type, osm_object) {
                     file.comma = true;
                 }
                 file.json.print(str);
+            }
+            if (rule.idfile != null) {
+                var file = idfiles[rule.idfile];
+                var id = osm_object.id;
+                if ("relation" == osm_object.from) {
+                    id = (id - 1) / 2;
+                }
+                if ("way" == osm_object.from) {
+                    id /= 2;
+                }
+                file.idf.print(id, toNodeArray(osm_object.nodes));
             }
         }
     }
@@ -278,6 +327,9 @@ Osmium.Callbacks.end = function() {
     for (var file in jsonfiles) {
         jsonfiles[file].json.print(']');
         jsonfiles[file].json.close();
+    }
+    for (var file in idfiles) {
+        idfiles[file].idf.close();
     }
 
     print("Done");

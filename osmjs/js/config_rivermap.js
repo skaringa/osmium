@@ -49,9 +49,9 @@ shapefile('water').
     column('name', STRING, 32);
 
 
-//---- json files
-jsonfile('wways');
-jsonfile('wtr');
+//---- csv id files
+idcsvfile('wways');
+idcsvfile('wtr');
 
 // ---- rules ----
 
@@ -63,8 +63,8 @@ node('place', 'town|city').
 way('waterway', 'stream|river|ditch|canal|drain|weir|dam').
     output('waterways').
         attr('type', 'waterway').
-        attr('name')
-    .json('wways');
+        attr('name').
+    idcsv('wways');
 
 way('highway', 'motorway|motorway_link').
     output('roads').
@@ -85,13 +85,13 @@ area('natural', 'water').
     output('water').
         attr('type', 'natural').
         attr('name').
-    json('wtr');
+    idcsv('wtr');
 
 area('landuse', 'reservoir|basin').
     output('water').
         attr('type', 'landuse').
         attr('name').
-    json('wtr');
+    idcsv('wtr');
 
 area('waterway', 'riverbank').
     output('water').
