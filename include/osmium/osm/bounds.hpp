@@ -37,6 +37,11 @@ namespace Osmium {
                 m_top_right() {
             }
 
+            Bounds(double left, double bottom, double right, double top) :
+                m_bottom_left(left, bottom),
+                m_top_right(right, top) {
+            }
+
             Bounds& extend(const Position& position) {
                 if (m_bottom_left.defined()) {
                     if (position.x() < m_bottom_left.x()) m_bottom_left.x(position.x());
@@ -48,6 +53,11 @@ namespace Osmium {
                     m_top_right = position;
                 }
                 return *this;
+            }
+
+            bool contains(const Position& position) const {
+                return position.x() > m_bottom_left.x() && position.x() < m_top_right.x()
+                        && position.y() > m_bottom_left.y() && position.y() < m_top_right.y();
             }
 
             bool defined() const {
@@ -79,6 +89,20 @@ namespace Osmium {
             out << '(' << bounds.bottom_left().lon() << ',' << bounds.bottom_left().lat() << ','
                 << bounds.top_right().lon() << ',' << bounds.top_right().lat() << ')';
             return out;
+        }
+
+        inline std::istream& operator>>(std::istream& in, Bounds& bounds) {
+            char c1, c2, c3;
+            double left, bottom, right, top;
+
+            in >> left >> c1 >> bottom >> c2 >> right >> c3 >> top;
+            if (',' == c1 && ',' == c2 && ',' == c3) {
+                bounds = Bounds(left, bottom, right, top);
+            } else {
+                in.clear(std::ios::badbit); // set error state
+            }
+
+            return in;
         }
 
     } // namespace OSM

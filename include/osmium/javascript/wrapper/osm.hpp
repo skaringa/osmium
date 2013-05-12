@@ -83,6 +83,10 @@ namespace Osmium {
                     return v8::Number::New(wnl->size());
                 }
 
+                static v8::Handle<v8::Value> has_position(Osmium::OSM::WayNodeList* wnl) {
+                    return v8::Boolean::New(wnl->has_position());
+                }
+
                 static v8::Handle<v8::Value> get_node_id(uint32_t index, Osmium::OSM::WayNodeList* wnl) {
                     return v8::Number::New((*wnl)[index].ref());
                 }
@@ -101,6 +105,7 @@ namespace Osmium {
                 OSMWayNodeList() :
                     Osmium::Javascript::Template() {
                     js_template->SetAccessor(v8::String::NewSymbol("length"), accessor_getter<Osmium::OSM::WayNodeList, length>);
+                    js_template->SetAccessor(v8::String::NewSymbol("has_position"), accessor_getter<Osmium::OSM::WayNodeList, has_position>);
                     js_template->SetIndexedPropertyHandler(
                         indexed_property_getter<Osmium::OSM::WayNodeList, get_node_id>,
                         0,

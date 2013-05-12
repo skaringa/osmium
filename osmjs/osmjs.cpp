@@ -37,6 +37,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #endif
 #include <osmium/handler/coordinates_for_ways.hpp>
 #include <osmium/multipolygon/assembler.hpp>
+#include <osmium/handler/clip_bounds.hpp>
 
 typedef Osmium::Storage::ById::Base<Osmium::OSM::Position> storage_byid_t;
 typedef Osmium::Storage::ById::MmapFile<Osmium::OSM::Position> storage_mmap_t;
@@ -56,6 +57,7 @@ void print_help() {
               << "  --2pass, -2                      - Read OSMFILE twice\n"
               << "  --multipolygon, -m               - Build multipolygons (implies -2)\n"
               << "  --validate, -v                   - Validate multipolygons (default: no validation)\n"
+              << "  --clip=LEFT,BOTTOM,RIGHT,TOP, -c - Clip input according to given bounds (default: no clipping)\n"
               << "Location stores:\n"
               << "  none        - Do not store node locations (you will have no way or polygon geometries)\n"
               << "  array       - Store node locations in large array (use for large OSM files)\n"
@@ -122,15 +124,19 @@ int main(int argc, char* argv[]) {
         {"2pass",                no_argument, 0, '2'},
         {"multipolygon",         no_argument, 0, 'm'},
         {"validate",             no_argument, 0, 'v'},
+        {"clip",           required_argument, 0, 'c'},
         {0, 0, 0, 0}
     };
 
     bool debug = false;
     bool multipolygon = false;
     bool validate = false;
+    bool clip_bounds = false;
+    std::stringstream str;
+    Osmium::OSM::Bounds bounds;
 
     while (1) {
-        int c = getopt_long(argc, argv, "dhi:j:l:r2mv", long_options, 0);
+        int c = getopt_long(argc, argv, "dhi:j:l:r2mvc:", long_options, 0);
         if (c == -1)
             break;
 
@@ -177,6 +183,13 @@ int main(int argc, char* argv[]) {
                 break;
             case 'v':
                 validate = true;
+                break;
+            case 'c':
+                str << optarg;
+                str >> bounds;
+                if (str) {
+                    clip_bounds = true;
+                }
                 break;
             default:
                 exit(1);
@@ -258,17 +271,34 @@ int main(int argc, char* argv[]) {
         typedef Osmium::Handler::Sequence<cfw_handler_t, assembler_t::HandlerPass2> sequence_handler_t;
         sequence_handler_t sequence_handler(handler_cfw, assembler.handler_pass2());
 
-        Osmium::Input::read(infile, assembler.handler_pass1());
-        Osmium::Input::read(infile, sequence_handler);
+        if (clip_bounds) {
+            Osmium::Handler::ClipBounds<Osmium::Handler::Base> clip_handler_1(assembler.handler_pass1(), bounds);
+            Osmium::Input::read(infile, clip_handler_1);
+            Osmium::Handler::ClipBounds<sequence_handler_t> clip_handler_2(sequence_handler, bounds);
+            Osmium::Input::read(infile, clip_handler_2);
+        } else {
+            Osmium::Input::read(infile, assembler.handler_pass1());
+            Osmium::Input::read(infile, sequence_handler);
+        }
     } else if (store_pos) {
         cfw_handler_t handler_cfw(*store_pos, store_neg);
 
         typedef Osmium::Handler::Sequence<cfw_handler_t, Osmium::Javascript::Handler> sequence_handler_t;
         sequence_handler_t sequence_handler(handler_cfw, handler_javascript);
 
-        Osmium::Input::read(infile, sequence_handler);
+        if (clip_bounds) {
+            Osmium::Handler::ClipBounds<sequence_handler_t> clip_handler(sequence_handler, bounds);
+            Osmium::Input::read(infile, clip_handler);
+        } else {
+            Osmium::Input::read(infile, sequence_handler);
+        }
     } else {
-        Osmium::Input::read(infile, handler_javascript);
+        if (clip_bounds) {
+             Osmium::Handler::ClipBounds<Osmium::Javascript::Handler> clip_handler(handler_javascript, bounds);
+             Osmium::Input::read(infile, clip_handler);
+         } else {
+             Osmium::Input::read(infile, handler_javascript);
+         }
     }
 
     delete store_pos;

@@ -302,7 +302,9 @@ function check(type, osm_object) {
                 if ("way" == osm_object.from) {
                     id /= 2;
                 }
-                file.idf.print(id, toNodeArray(osm_object.nodes));
+                if (osm_object.nodes.has_position) {
+                	file.idf.print(id, toNodeArray(osm_object.nodes));
+                }
             }
         }
     }

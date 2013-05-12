@@ -131,9 +131,13 @@ namespace Osmium {
             bool has_position() const {
                 if (m_list.empty()) {
                     return false;
-                } else {
-                    return m_list.back().has_position();
                 }
+                for (std::vector<WayNode>::const_iterator it = m_list.begin(); it != m_list.end(); ++it) {
+                    if (! it->has_position()) {
+                        return false;
+                    }
+                }
+                return true;
             }
 
             WayNodeList& push_back(const WayNode& way_node) {
