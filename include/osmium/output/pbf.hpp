@@ -244,13 +244,13 @@ namespace Osmium {
                 z_stream z;
 
                 // next byte to compress
-                z.next_in   = (uint8_t*) in.c_str();
+                z.next_in   = const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(in.c_str()));
 
                 // number of bytes to compress
                 z.avail_in  = in.size();
 
                 // place to store compressed bytes
-                z.next_out  = (uint8_t*) m_compression_buffer;
+                z.next_out  = reinterpret_cast<uint8_t*>(m_compression_buffer);
 
                 // space for compressed data
                 z.avail_out = OSMPBF::max_uncompressed_blob_size;
@@ -724,7 +724,7 @@ namespace Osmium {
                             pbf_relation->add_types(OSMPBF::Relation::RELATION);
                             break;
                         default:
-                            throw std::runtime_error("Unknown relation member type: " + mem->type());
+                            throw std::runtime_error("Unknown relation member type");
                     }
                 }
 

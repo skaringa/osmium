@@ -11,7 +11,7 @@
 set -e
 
 CXX="g++"
-CXXFLAGS="-g -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo"
+CXXFLAGS="-g -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo -Wno-long-long"
 COMPILE="$CXX -I../include -I. $CXXFLAGS -o tests"
 
 if [ "x$1" = "x-v" ]; then
@@ -29,8 +29,8 @@ test_file () {
     eval CFLAGS=`../get_options.sh --cflags $FILES`
     eval LIBS=`../get_options.sh --libs $FILES`
     echo "Checking $BOLD$1$NORM..."
-    echo $COMPILE $FILES $CFLAGS $LIBS -lboost_unit_test_framework
-    $COMPILE $FILES $CFLAGS $LIBS -lboost_unit_test_framework
+    echo $COMPILE $FILES $CFLAGS $LIBS -DBOOST_TEST_DYN_LINK -lboost_unit_test_framework
+    $COMPILE $FILES $CFLAGS $LIBS -DBOOST_TEST_DYN_LINK -lboost_unit_test_framework
     $VALGRIND ./tests
 }
 
