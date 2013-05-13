@@ -57,7 +57,7 @@ void print_help() {
               << "  --2pass, -2                      - Read OSMFILE twice\n"
               << "  --multipolygon, -m               - Build multipolygons (implies -2)\n"
               << "  --validate, -v                   - Validate multipolygons (default: no validation)\n"
-              << "  --clip=LEFT,BOTTOM,RIGHT,TOP, -c - Clip input according to given bounds (default: no clipping)\n"
+              << "  --bbox=LEFT,BOTTOM,RIGHT,TOP, -b - Bounding box to clip the input (default: no clipping)\n"
               << "Location stores:\n"
               << "  none        - Do not store node locations (you will have no way or polygon geometries)\n"
               << "  array       - Store node locations in large array (use for large OSM files)\n"
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
         {"2pass",                no_argument, 0, '2'},
         {"multipolygon",         no_argument, 0, 'm'},
         {"validate",             no_argument, 0, 'v'},
-        {"clip",           required_argument, 0, 'c'},
+        {"bbox",           required_argument, 0, 'b'},
         {0, 0, 0, 0}
     };
 
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
     Osmium::OSM::Bounds bounds;
 
     while (1) {
-        int c = getopt_long(argc, argv, "dhi:j:l:r2mvc:", long_options, 0);
+        int c = getopt_long(argc, argv, "dhi:j:l:r2mvb:", long_options, 0);
         if (c == -1)
             break;
 
@@ -184,11 +184,14 @@ int main(int argc, char* argv[]) {
             case 'v':
                 validate = true;
                 break;
-            case 'c':
+            case 'b':
                 str << optarg;
                 str >> bounds;
                 if (str) {
                     clip_bounds = true;
+                } else {
+                    std::cerr << "Invalid bbox format!\n";
+                    exit(1);
                 }
                 break;
             default:
@@ -219,6 +222,11 @@ int main(int argc, char* argv[]) {
 
     if (multipolygon && location_store == NONE) {
         std::cerr << "You need to set the location store with -l, otherwise multipolygon assembly will not work.\n";
+        exit(1);
+    }
+
+    if (clip_bounds && !(location_store == SPARSETABLE || location_store == VECTOR)) {
+        std::cerr << "bbox works only with location-store sparsetable or vector.\n";
         exit(1);
     }
 
@@ -271,8 +279,10 @@ int main(int argc, char* argv[]) {
         typedef Osmium::Handler::Sequence<cfw_handler_t, assembler_t::HandlerPass2> sequence_handler_t;
         sequence_handler_t sequence_handler(handler_cfw, assembler.handler_pass2());
 
+        typedef assembler_t::HandlerPass1 assembler_handler_pass1_t;
+
         if (clip_bounds) {
-            Osmium::Handler::ClipBounds<Osmium::Handler::Base> clip_handler_1(assembler.handler_pass1(), bounds);
+            Osmium::Handler::ClipBounds<assembler_handler_pass1_t> clip_handler_1(assembler.handler_pass1(), bounds);
             Osmium::Input::read(infile, clip_handler_1);
             Osmium::Handler::ClipBounds<sequence_handler_t> clip_handler_2(sequence_handler, bounds);
             Osmium::Input::read(infile, clip_handler_2);

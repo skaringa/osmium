@@ -310,10 +310,12 @@ namespace Osmium {
              *          the Builder object is gone.
              */
             std::vector< shared_ptr<Osmium::OSM::Area> >& build() {
+                bool hasWays = true;
                 try {
                     {
                         std::vector< shared_ptr<WayInfo> > ways;
                         assemble_ways(ways);
+                        hasWays = !ways.empty();
                         make_rings(ways);
                     }
 
@@ -322,7 +324,9 @@ namespace Osmium {
                     build_multipolygon();
                     m_areas.push_back(m_new_area);
                 } catch (BuildError& error) {
-                    std::cerr << "Building multipolygon based on relation " << m_relation_info.relation()->id() << " failed: " << error.what() << "\n";
+                    if (hasWays) {
+                        std::cerr << "Building multipolygon based on relation " << m_relation_info.relation()->id() << " failed: " << error.what() << "\n";
+                    }
                 }
                 return m_areas;
             }
@@ -650,7 +654,8 @@ namespace Osmium {
                     const shared_ptr<Osmium::OSM::Way const> way = static_pointer_cast<Osmium::OSM::Way const>(object);
 
                     // ignore members that are not ways and ways without nodes
-                    if (way && !way->nodes().empty()) {
+                    // and ways without positions
+                    if (way && !way->nodes().empty() && way->nodes().has_position()) {
                         if (way->timestamp() > m_new_area->timestamp()) {
                             m_new_area->timestamp(way->timestamp());
                         }
