@@ -88,7 +88,7 @@ namespace Osmium {
             }
 
             void way_not_in_any_relation(const shared_ptr<Osmium::OSM::Way const>& way) {
-                if (way->is_closed() && way->nodes().size() >= 4) { // way is closed and has enough nodes, build simple multipolygon
+                if (way->is_closed() && way->nodes().size() >= 4 && way->nodes().has_position()) { // way is closed and has enough nodes, build simple multipolygon
                     if (debug && has_debug_level(2)) {
                         std::cout << "MultiPolygon from way " << way->id() << "\n";
                     }
