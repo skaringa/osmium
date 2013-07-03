@@ -18,6 +18,12 @@ shapefile('places').
     column('type', STRING, 32).
     column('name', STRING, 32);
 
+shapefile('natural_pois').
+    type(POINT).
+    column('id', STRING, 12).
+    column('type', STRING, 32).
+    column('name', STRING, 32);
+
 shapefile('roads').
     type(LINE).
     column('id', STRING, 12).
@@ -58,6 +64,11 @@ idcsvfile('wtr');
 node('place', 'town|city').
     output('places').
         attr('type', 'place').
+        attr('name');
+
+node('natural', 'peak|spring').
+    output('natural_pois').
+        attr('type', 'natural').
         attr('name');
 
 way('waterway', 'stream|river|ditch|canal|drain|weir|dam').
