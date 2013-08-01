@@ -75,7 +75,7 @@ node('natural', 'peak').
         attr('ele').
         attr('name');
 
-way('waterway', 'stream|river|ditch|canal|drain|weir|dam').
+way('waterway', 'stream|river|ditch|canal|drain|weir|dam|waterfall').
     output('waterways').
         attr('type', 'waterway').
         attr('name').
