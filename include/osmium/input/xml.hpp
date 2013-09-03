@@ -31,7 +31,6 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <unistd.h>
 #include <expat.h>
 
 #include <osmium/input.hpp>
@@ -68,8 +67,6 @@ namespace Osmium {
             }
 
             void parse() {
-                int done;
-
                 XML_Parser parser = XML_ParserCreate(0);
                 if (!parser) {
                     throw std::runtime_error("Error creating parser");
@@ -80,13 +77,14 @@ namespace Osmium {
                 XML_SetElementHandler(parser, Osmium::Input::XML<THandler>::start_element_wrapper, Osmium::Input::XML<THandler>::end_element_wrapper);
 
                 try {
+                    int done;
                     do {
                         void* buffer = XML_GetBuffer(parser, c_buffer_size);
                         if (buffer == 0) {
                             throw std::runtime_error("out of memory");
                         }
 
-                        int result = read(this->fd(), buffer, c_buffer_size);
+                        int result = ::read(this->fd(), buffer, c_buffer_size);
                         if (result < 0) {
                             throw std::runtime_error("read error");
                         }
@@ -239,7 +237,7 @@ namespace Osmium {
                         if (!strcmp(element, "nd")) {
                             for (int count = 0; attrs[count]; count += 2) {
                                 if (!strcmp(attrs[count], "ref")) {
-                                    this->m_way->add_node(atoll(attrs[count+1]));
+                                    this->m_way->add_node(Osmium::string_to_osm_object_id_t(attrs[count+1]));
                                 }
                             }
                         } else {
@@ -257,7 +255,7 @@ namespace Osmium {
                                 if (!strcmp(attrs[count], "type")) {
                                     type = static_cast<char>(attrs[count+1][0]);
                                 } else if (!strcmp(attrs[count], "ref")) {
-                                    ref = atoll(attrs[count+1]);
+                                    ref = Osmium::string_to_osm_object_id_t(attrs[count+1]);
                                 } else if (!strcmp(attrs[count], "role")) {
                                     role = static_cast<const char*>(attrs[count+1]);
                                 }

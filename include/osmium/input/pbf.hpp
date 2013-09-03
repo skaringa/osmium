@@ -69,7 +69,13 @@ namespace Osmium {
             * @param handler Instance of THandler.
             */
             PBF(const OSMFile& file, THandler& handler) :
-                Base<THandler>(file, handler) {
+                Base<THandler>(file, handler),
+                m_input_buffer(),
+                m_unpack_buffer(),
+                m_pbf_blob(),
+                m_pbf_blob_header(),
+                m_pbf_primitive_block(),
+                m_date_factor() {
                 GOOGLE_PROTOBUF_VERIFY_VERSION;
             }
 
@@ -386,7 +392,7 @@ namespace Osmium {
                 unsigned char size_in_network_byte_order[4];
                 int offset = 0;
                 while (offset < static_cast<int>(sizeof(size_in_network_byte_order))) {
-                    int nread = read(this->fd(), size_in_network_byte_order + offset, sizeof(size_in_network_byte_order) - offset);
+                    int nread = ::read(this->fd(), size_in_network_byte_order + offset, sizeof(size_in_network_byte_order) - offset);
                     if (nread < 0) {
                         throw std::runtime_error("read error");
                     } else if (nread == 0) {
@@ -404,7 +410,7 @@ namespace Osmium {
 
                 offset = 0;
                 while (offset < size) {
-                    int nread = read(this->fd(), m_input_buffer + offset, size - offset);
+                    int nread = ::read(this->fd(), m_input_buffer + offset, size - offset);
                     if (nread < 1) {
                         throw std::runtime_error("failed to read BlobHeader");
                     }
@@ -428,7 +434,7 @@ namespace Osmium {
                 }
                 int offset = 0;
                 while (offset < size) {
-                    int nread = read(this->fd(), m_input_buffer + offset, size - offset);
+                    int nread = ::read(this->fd(), m_input_buffer + offset, size - offset);
                     if (nread < 1) {
                         throw std::runtime_error("failed to read blob");
                     }

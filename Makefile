@@ -11,7 +11,8 @@ all:
 .PHONY: clean install check check-includes test indent
 
 clean:
-	rm -fr check-includes-report doc/html test/tests
+	rm -fr check-includes-report doc/html
+	$(MAKE) -C test clean
 
 install: doc
 	install -m 755 -g root -o root -d $(DESTDIR)/usr/include
@@ -22,7 +23,7 @@ install: doc
 	cp --recursive doc/html $(DESTDIR)/usr/share/doc/libosmium-dev
 
 check:
-	cppcheck --enable=all -I include */*.cpp test/*/test_*.cpp
+	cppcheck --enable=all -I include */*.cpp test/t/*/test_*.cpp
 
 WARNINGFLAGS = -Wall -Wextra -Wredundant-decls -Wdisabled-optimization -pedantic -Wctor-dtor-privacy -Wnon-virtual-dtor -Woverloaded-virtual -Wsign-promo -Wno-long-long -Winline -Weffc++ -Wold-style-cast
 

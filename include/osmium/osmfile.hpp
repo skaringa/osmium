@@ -265,7 +265,7 @@ namespace Osmium {
              * XML encoding, compressed with gzip.
              */
             static FileEncoding* XMLgz() {
-                static FileEncoding instance(".gz", "gzip", "gzcat", false);
+                static FileEncoding instance(".gz", "gzip", "zcat", false);
                 return &instance;
             }
 
@@ -332,17 +332,17 @@ namespace Osmium {
                 }
 
                 if (input == 0) {
-                    open("/dev/null", O_RDONLY); // stdin
-                    open("/dev/null", O_WRONLY); // stderr
-                    if (execlp(command.c_str(), command.c_str(), m_filename.c_str(), NULL) < 0) {
+                    ::open("/dev/null", O_RDONLY); // stdin
+                    ::open("/dev/null", O_WRONLY); // stderr
+                    if (::execlp(command.c_str(), command.c_str(), m_filename.c_str(), NULL) < 0) {
                         exit(1);
                     }
                 } else {
-                    if (open(m_filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT, 0666) != 1) {
+                    if (::open(m_filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT, 0666) != 1) {
                         exit(1);
                     }
-                    open("/dev/null", O_WRONLY); // stderr
-                    if (execlp(command.c_str(), command.c_str(), 0, NULL) < 0) {
+                    ::open("/dev/null", O_WRONLY); // stderr
+                    if (::execlp(command.c_str(), command.c_str(), 0, NULL) < 0) {
                         exit(1);
                     }
                 }
@@ -363,7 +363,11 @@ namespace Osmium {
             if (m_filename == "") {
                 return 0; // stdin
             } else {
-                int fd = open(m_filename.c_str(), O_RDONLY);
+                int flags = O_RDONLY;
+#ifdef WIN32
+                flags |= O_BINARY;
+#endif
+                int fd = ::open(m_filename.c_str(), flags);
                 if (fd < 0) {
                     throw IOError("Open failed", m_filename, errno);
                 }
@@ -382,7 +386,11 @@ namespace Osmium {
             if (m_filename == "") {
                 return 1; // stdout
             } else {
-                int fd = open(m_filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT, 0666);
+                int flags = O_WRONLY | O_TRUNC | O_CREAT;
+#ifdef WIN32
+                flags |= O_BINARY;
+#endif
+                int fd = ::open(m_filename.c_str(), flags, 0666);
                 if (fd < 0) {
                     throw IOError("Open failed", m_filename, errno);
                 }
@@ -535,7 +543,9 @@ namespace Osmium {
                 int status;
                 pid_t pid = waitpid(m_childpid, &status, 0);
                 if (pid < 0 || !WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-                    throw IOError("Subprocess returned error", "", errno);
+                    // global variable errno doesn't contain a valid value,
+                    // so we better set errno=0
+                    throw IOError("Subprocess returned error", m_filename, 0);
                 }
                 m_childpid = 0;
             }
@@ -639,7 +649,7 @@ namespace Osmium {
         }
 
         std::string filename_without_suffix() const {
-            return m_filename.substr(m_filename.find_first_of('.')+1);
+            return m_filename.substr(0, m_filename.find_first_of('.'));
         }
 
         std::string filename_with_default_suffix() const {
