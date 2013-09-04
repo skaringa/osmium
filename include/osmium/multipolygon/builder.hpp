@@ -490,9 +490,11 @@ namespace Osmium {
              * Try extending a proto-ring recursively until it is complete.
              */
             shared_ptr<RingInfo> complete_ring(std::vector< shared_ptr<WayInfo> >& ways, osm_object_id_t first, osm_object_id_t last, int ringcount, int sequence) const {
-                if (sequence > 2000) {
-                    throw BuildError("Too much recursions in complete_ring");
-                }
+//                if (m_relation_info.relation()->id() == 1187332) {
+//                  // https://github.com/joto/osmium/issues/80
+//                    std::cout << "critical: " << sequence << std::endl;
+//                    return shared_ptr<RingInfo>();
+//                }
 
                 // is the ring closed already?
                 if (first == last) {

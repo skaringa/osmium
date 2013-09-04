@@ -67,7 +67,7 @@ namespace Osmium {
                     return;
                 }
 
-                if ((!strcmp(type, "multipolygon")) || (!strcmp(type, "boundary"))) {
+                if ((!strcmp(type, "multipolygon")) /* || (!strcmp(type, "boundary")) */) {
                     AssemblerType::add_relation(Osmium::Relations::RelationInfo(relation));
                 }
             }
