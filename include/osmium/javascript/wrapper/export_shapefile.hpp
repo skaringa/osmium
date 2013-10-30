@@ -37,25 +37,29 @@ namespace Osmium {
             struct ExportShapefile : public Osmium::Javascript::Template {
 
                 static v8::Handle<v8::Value> open(const v8::Arguments& args) {
-                    if (args.Length() != 2) {
+                    if (args.Length() < 2 || args.Length() > 3) {
                         return v8::Undefined();
-                    } else {
-                        v8::String::Utf8Value str(args[0]);
-                        v8::String::AsciiValue type(args[1]);
-                        std::string filename(*str);
-                        Osmium::Export::Shapefile* oc;
-                        if (!strcmp(*type, "point")) {
-                            oc = new Osmium::Export::PointShapefile(filename);
-                        } else if (!strcmp(*type, "line")) {
-                            oc = new Osmium::Export::LineStringShapefile(filename);
-                        } else if (!strcmp(*type, "polygon")) {
-                            oc = new Osmium::Export::PolygonShapefile(filename);
-                        } else {
-                            throw std::runtime_error("unkown shapefile type");
-                        }
-
-                        return Osmium::Javascript::Wrapper::ExportShapefile::get<Osmium::Javascript::Wrapper::ExportShapefile>().create_instance(static_cast<void*>(oc));
                     }
+                    std::string encoding("UTF-8");
+                    if (args.Length() == 3) {
+                        v8::String::Utf8Value enc(args[2]);
+                        encoding = *enc;
+                    }
+                    v8::String::Utf8Value str(args[0]);
+                    v8::String::AsciiValue type(args[1]);
+                    std::string filename(*str);
+                    Osmium::Export::Shapefile* oc;
+                    if (!strcmp(*type, "point")) {
+                        oc = new Osmium::Export::PointShapefile(filename, encoding);
+                    } else if (!strcmp(*type, "line")) {
+                        oc = new Osmium::Export::LineStringShapefile(filename, encoding);
+                    } else if (!strcmp(*type, "polygon")) {
+                        oc = new Osmium::Export::PolygonShapefile(filename, encoding);
+                    } else {
+                        throw std::runtime_error("unknown shapefile type");
+                    }
+
+                    return Osmium::Javascript::Wrapper::ExportShapefile::get<Osmium::Javascript::Wrapper::ExportShapefile>().create_instance(static_cast<void*>(oc));
                 }
 
                 static void add_string_attribute(Osmium::Export::Shapefile* shapefile, int n, v8::Local<v8::Value> value) {

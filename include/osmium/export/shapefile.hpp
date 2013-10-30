@@ -31,6 +31,8 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <osmium/geometry/shplib.hpp>
 
+#include <unicode/unistr.h>
+
 namespace Osmium {
 
     namespace Export {
@@ -239,14 +241,24 @@ namespace Osmium {
             }
 
             void add_attribute(const int field, const std::string& value) const {
-                int ok = DBFWriteStringAttribute(m_dbf_handle, m_current_shape, field, value.c_str());
-                if (!ok) {
-                    throw std::runtime_error("Can't add string to field");
-                }
+                add_attribute(field, value.c_str());
             }
 
             void add_attribute(const int field, const char* value) const {
-                int ok = DBFWriteStringAttribute(m_dbf_handle, m_current_shape, field, value);
+                // value is UTF-8 encoded
+                int ok;
+                if (m_encoding.compare("UTF-8") != 0) {
+                    uint32_t targetLen = strlen(value)  + 50;
+                    char* target = new char[targetLen];
+                    icu::UnicodeString str(value, "UTF-8");
+                    int32_t targetsize = str.extract(0, str.length(), target, targetLen-1, Shapefile::m_encoding.c_str());
+                    target[targetsize] = 0;
+                    ok = DBFWriteStringAttribute(m_dbf_handle, m_current_shape, field, target);
+                    delete[] target;
+                } else {
+                    ok = DBFWriteStringAttribute(m_dbf_handle, m_current_shape, field, value);
+                }
+
                 if (!ok) {
                     throw std::runtime_error("Can't add char* to field");
                 }
@@ -288,8 +300,9 @@ namespace Osmium {
              * The constructor for Shapefile is protected. Use one of
              * PointShapefile, LineShapefile, or PolygonShapefile.
              */
-            Shapefile(const std::string& filename, int type) :
+            Shapefile(const std::string& filename, int type, const std::string& encoding = "UTF-8") :
                 m_filename_base(filename),
+                m_encoding(encoding),
                 m_fields(),
                 m_shp_handle(NULL),
                 m_dbf_handle(NULL),
@@ -306,6 +319,9 @@ namespace Osmium {
 
             /// base filename
             const std::string m_filename_base;
+
+            // encoding of strings in DBF file
+            const std::string m_encoding;
 
             /// fields in DBF
             std::vector<Field> m_fields;
@@ -364,7 +380,7 @@ namespace Osmium {
                 if (file.fail()) {
                     throw std::runtime_error("Can't open shapefile: " + filename.str() + ".cpg");
                 }
-                file << "UTF-8" << std::endl;
+                file << m_encoding << std::endl;
                 file.close();
 
                 // If any fields are defined already, add them here. This will do nothing if
@@ -441,8 +457,8 @@ namespace Osmium {
              *
              * @param filename Filename (optionally including path) without any suffix.
              */
-            PointShapefile(const std::string& filename) :
-                Shapefile(filename, SHPT_POINT) {
+            PointShapefile(const std::string& filename, const std::string& encoding = "UTF-8") :
+                Shapefile(filename, SHPT_POINT, encoding) {
             }
 
         };
@@ -459,8 +475,8 @@ namespace Osmium {
              *
              * @param filename Filename (optionally including path) without any suffix.
              */
-            LineStringShapefile(const std::string& filename) :
-                Shapefile(filename, SHPT_ARC) {
+            LineStringShapefile(const std::string& filename, const std::string& encoding = "UTF-8") :
+                Shapefile(filename, SHPT_ARC, encoding) {
             }
 
         };
@@ -477,8 +493,8 @@ namespace Osmium {
              *
              * @param filename Filename (optionally including path) without any suffix.
              */
-            PolygonShapefile(const std::string& filename) :
-                Shapefile(filename, SHPT_POLYGON) {
+            PolygonShapefile(const std::string& filename, const std::string& encoding = "UTF-8") :
+                Shapefile(filename, SHPT_POLYGON, encoding) {
             }
 
         };

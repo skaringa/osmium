@@ -37,6 +37,7 @@ function shapefile(name) {
         name: name,
         fname: name,
         gtype: 'point',
+        enc: 'UTF-8',
         columns: [],
         column_names: {},
         type: function(type) {
@@ -45,6 +46,10 @@ function shapefile(name) {
                 exit(1);
             }
             this.gtype = type;
+            return this;
+        },
+        encoding: function(enc) {
+            this.enc = enc.toUpperCase();
             return this;
         },
         column: function(name, type, size) {
@@ -204,10 +209,11 @@ Osmium.Callbacks.init = function() {
     for (var file in files) {
         var f = files[file];
 
-        f.shp = Osmium.Output.Shapefile.open('./' + f.fname, f.gtype);
+        f.shp = Osmium.Output.Shapefile.open('./' + f.fname, f.gtype, f.enc);
 
         print('Shapefile: ' + file);
         print('  Filename: ' + f.fname);
+        print('  Encoding: ' + f.enc);
         print('  Geometry type: ' + f.gtype.toUpperCase());
         print('  Columns:');
 
