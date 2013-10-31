@@ -31,7 +31,7 @@ You should have received a copy of the Licenses along with Osmium. If not, see
 
 #include <osmium/geometry/shplib.hpp>
 
-#include <unicode/unistr.h>
+#include <unicode/ucnv.h>
 
 namespace Osmium {
 
@@ -118,6 +118,16 @@ namespace Osmium {
                     SHPClose(m_shp_handle);
                     m_shp_handle = 0;
                 }
+                if (m_converter) {
+                    ucnv_close(m_converter);
+                }
+            }
+
+            /**
+             * Get the converter used to encode characters in the DBF file.
+             */
+            UConverter* get_char_converter() {
+                return m_converter;
             }
 
             /**
@@ -245,20 +255,7 @@ namespace Osmium {
             }
 
             void add_attribute(const int field, const char* value) const {
-                // value is UTF-8 encoded
-                int ok;
-                if (m_encoding.compare("UTF-8") != 0) {
-                    uint32_t targetLen = strlen(value)  + 50;
-                    char* target = new char[targetLen];
-                    icu::UnicodeString str(value, "UTF-8");
-                    int32_t targetsize = str.extract(0, str.length(), target, targetLen-1, Shapefile::m_encoding.c_str());
-                    target[targetsize] = 0;
-                    ok = DBFWriteStringAttribute(m_dbf_handle, m_current_shape, field, target);
-                    delete[] target;
-                } else {
-                    ok = DBFWriteStringAttribute(m_dbf_handle, m_current_shape, field, value);
-                }
-
+                int ok = DBFWriteStringAttribute(m_dbf_handle, m_current_shape, field, value);
                 if (!ok) {
                     throw std::runtime_error("Can't add char* to field");
                 }
@@ -303,6 +300,7 @@ namespace Osmium {
             Shapefile(const std::string& filename, int type, const std::string& encoding = "UTF-8") :
                 m_filename_base(filename),
                 m_encoding(encoding),
+                m_converter(0),
                 m_fields(),
                 m_shp_handle(NULL),
                 m_dbf_handle(NULL),
@@ -322,6 +320,7 @@ namespace Osmium {
 
             // encoding of strings in DBF file
             const std::string m_encoding;
+            UConverter* m_converter;
 
             /// fields in DBF
             std::vector<Field> m_fields;
@@ -391,6 +390,12 @@ namespace Osmium {
 
                 m_shp_bytes = size_shapefile_header;
                 m_dbf_bytes = size_dbf_header + size_dbf_field_header * (m_fields.size());
+
+                UErrorCode error_code = U_ZERO_ERROR;
+                m_converter = ucnv_open(m_encoding.c_str(), &error_code);
+                if (U_FAILURE(error_code)) {
+                    throw std::runtime_error("Can't create converter for encoding: " + m_encoding);
+                }
             }
 
             /**
