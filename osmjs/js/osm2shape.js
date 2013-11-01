@@ -52,7 +52,7 @@ function shapefile(name) {
             this.enc = enc.toUpperCase();
             return this;
         },
-        column: function(name, type, size) {
+        column: function(name, type, size, decimals) {
             if (type != 'integer' && type != 'string' && type != 'bool' && type != 'double') {
                 print('Unknown attribute type: ' + type);
                 throw("config error");
@@ -63,7 +63,10 @@ function shapefile(name) {
             if (size < 0) {
                 print('Size not allowed: ' + size);
             }
-            var column = { name: name, type: type, size: size };
+            if (decimals == null) {
+                decimals = 0;
+            }
+            var column = { name: name, type: type, size: size, decimals: decimals };
             this.columns.push(column);
             this.column_names[name] = column;
             return this;
@@ -219,8 +222,8 @@ Osmium.Callbacks.init = function() {
 
         for (var i=0; i < f.columns.length; i++) {
             var d = f.columns[i];
-            print('    ' + (d.name + '          ').substr(0, 11) + d.type.toUpperCase() + ' ' + d.size);
-            f.shp.add_field(d.name, d.type, d.size);
+            print('    ' + (d.name + '          ').substr(0, 11) + d.type.toUpperCase() + ' ' + d.size + ' ' + d.decimals);
+            f.shp.add_field(d.name, d.type, d.size, d.decimals);
         }
 
         print('');
@@ -263,11 +266,13 @@ Osmium.Callbacks.init = function() {
     }
 }
 
-function tags2attributes(id, tags, attrs) {
+function tags2attributes(osm_object, attrs) {
+    var id = osm_object.id;
+    var tags = osm_object.tags;
     var obj = { id: id };
     for (var a in attrs) {
         if (typeof attrs[a] === 'function') {
-            obj[a] = attrs[a](id, tags);
+            obj[a] = attrs[a](osm_object);
         } else {
             obj[a] = tags[attrs[a]];
         }
@@ -287,7 +292,7 @@ function check(type, osm_object) {
     for (var i=0; i < rules[type].length; i++) {
         var rule = rules[type][i];
         if (rule.match(osm_object)) {
-            var a = tags2attributes(osm_object.id, osm_object.tags, rule.attrs);
+            var a = tags2attributes(osm_object, rule.attrs);
             files[rule.file].shp.add(osm_object.geom, a);
             if (rule.jsonfile != null) {
                 var file = jsonfiles[rule.jsonfile];

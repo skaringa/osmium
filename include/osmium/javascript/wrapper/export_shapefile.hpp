@@ -125,7 +125,7 @@ namespace Osmium {
                                         shapefile->add_attribute(n, value->Int32Value());
                                         break;
                                     case FTDouble:
-                                        throw std::runtime_error("fields of type double not implemented");
+                                        shapefile->add_attribute(n, value->NumberValue());
                                         break;
                                     case FTLogical:
                                         add_logical_attribute(shapefile, n, value);
