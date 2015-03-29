@@ -13,84 +13,84 @@
 
 shapefile('natural_pois').
     type(POINT).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('type', STRING, 32).
     column('name', STRING, 32);
 
 shapefile('misc_pois').
     type(POINT).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('type', STRING, 32).
     column('name', STRING, 32);
 
 shapefile('places').
     type(POINT).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('type', STRING, 32).
     column('name', STRING, 32);
 
 shapefile('railway_stations').
     type(POINT).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('name', STRING, 32);
 
 shapefile('roads').
     type(LINE).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('type', STRING, 32).
     column('name', STRING, 32).
     column('ref', STRING, 16).
     column('oneway', BOOL).
-    column('maxspeed', INTEGER, 3);
+    column('maxspeed', STRING, 12);
 
 shapefile('cycleways').
     type(LINE).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('name', STRING, 32);
 
 shapefile('railways').
     type(LINE).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('name', STRING, 32);
 
 shapefile('waterways').
     type(LINE).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('type', STRING, 32).
     column('name', STRING, 32);
 
 shapefile('powerlines').
     type(LINE).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('name', STRING, 32);
 
 shapefile('boundaries').
     type(POLYGON).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('level', INTEGER, 2).
     column('name', STRING, 32);
 
 shapefile('protected_areas').
     type(POLYGON).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('type', STRING, 32).
     column('name', STRING, 32);
 
 shapefile('landuse').
     type(POLYGON).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('type', STRING, 32).
     column('name', STRING, 32);
 
 shapefile('water').
     type(POLYGON).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('type', STRING, 32).
     column('name', STRING, 32);
 
 shapefile('glaciers').
     type(POLYGON).
-    column('id', INTEGER, 10).
+    column('id', STRING, 12).
     column('name', STRING, 32);
 
 // ---- rules ----
@@ -98,6 +98,11 @@ shapefile('glaciers').
 node('natural', 'tree|peak|spring').
     output('natural_pois').
         attr('type', 'natural').
+        attr('name');
+
+node('tourism', 'viewpoint').
+    output('natural_pois').
+        attr('type', 'tourism').
         attr('name');
 
 node('amenity', 'restaurant').
@@ -136,7 +141,7 @@ way('highway', 'cycleway').
     output('cycleways').
         attr('name');
 
-way('railway', 'rail').
+way('railway', 'rail|narrow_gauge').
     output('railways').
         attr('name');
 
