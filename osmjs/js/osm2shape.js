@@ -314,7 +314,7 @@ function check(type, osm_object) {
                     id /= 2;
                 }
                 if (osm_object.nodes.has_position) {
-                	file.idf.print(id, toNodeArray(osm_object.nodes));
+                    file.idf.print(id, a['type'], toNodeArray(osm_object.nodes));
                 }
             }
         }
